@@ -3,6 +3,24 @@ uuid = "18ab1edd-a46a-4810-9be5-9e0095ca83be"
 authors = ["Zoe McCarthy <zoemccarthy12@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
+Quadrature = "67601950-bd08-11e9-3c89-fd23fb4432d2"
+RuntimeGeneratedFunctions = "7e49a35a-f44a-4d26-94aa-eba1b4ca6b47"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
 [compat]
 julia = "1"
 
