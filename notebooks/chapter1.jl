@@ -24,6 +24,9 @@ begin
 	using Plots
 end
 
+# ╔═╡ 4913b034-633c-11eb-2109-5f2a85b3632f
+using SICMModelingToolkit
+
 # ╔═╡ f65c0428-61b9-11eb-0262-6dee6a26c858
 DrWatson.@quickactivate "SICMModelingToolkit"
 
@@ -32,6 +35,48 @@ MTderivative(O, v) = ModelingToolkit.derivative(O, v; simplify=true)
 
 # ╔═╡ 50a2ab6a-61bc-11eb-3933-890b4a8dfb64
 rdot(v1, v2) = sum(v1 .* v2)
+
+# ╔═╡ ef680ac4-6338-11eb-0ae4-83ed341a561e
+@macroexpand @variables u(t)
+
+# ╔═╡ 9c77aa44-6339-11eb-17b2-4fc2734cdcc6
+@variables u(t)
+
+# ╔═╡ 3b72e1d2-6339-11eb-3242-65b0429b5198
+@macroexpand @parameters t2
+
+# ╔═╡ 456b0be4-6339-11eb-39d8-17e640984fd1
+t3 = Num(Sym(:t3))
+
+# ╔═╡ 54322932-633c-11eb-0b94-b3a11c262da9
+SICMModelingToolkit.generate_generic_localtuple(3)
+
+# ╔═╡ 39738640-633c-11eb-17d0-c9dac4a1f5bb
+"q1"*"_t"
+
+# ╔═╡ f104c252-633b-11eb-233e-6d728a946be0
+qlength = 3
+
+# ╔═╡ f690e782-633b-11eb-1f36-71ab4e952e40
+qnames = [Symbol("q$(i)") for i in 1:qlength]
+
+# ╔═╡ 5c5d289e-6339-11eb-318f-15341be56c4b
+u1 = (Num)(((Sym){(SymbolicUtils.FnType){NTuple{1, Any}, Real}}(:u1))((ModelingToolkit.value)(t)))
+
+# ╔═╡ 87cdd570-6339-11eb-2f0d-e5e1ac662fab
+typeof(u1)
+
+# ╔═╡ 949a44a8-6339-11eb-3e2c-ddfbed92f6af
+dump(u)
+
+# ╔═╡ b004abe8-6339-11eb-3f8b-aba28292a88e
+dump(u1)
+
+# ╔═╡ b4d037e6-6339-11eb-12b4-25efa11e3aba
+println("clear")
+
+# ╔═╡ 4de82ab6-6339-11eb-16d4-b51a0aec0802
+dump(t3)
 
 # ╔═╡ 79a3f678-61cf-11eb-1d7a-31224592dc85
 ###### 1.4
@@ -260,6 +305,9 @@ function Lagrange_equations(L_i, qvars, qdotvars)
 	equations
 end
 
+# ╔═╡ a4ae8bd0-62ab-11eb-1f76-2596a3d649bb
+
+
 # ╔═╡ 61d6f634-61da-11eb-3621-4bae15be5cfe
 length(x)
 
@@ -380,24 +428,129 @@ L_kepler(t, [x, y], [x_t, y_t])
 lagkepler = Lagrange_equations(L_kepler, [x, y], [x_t, y_t])
 
 # ╔═╡ 2b3bcca8-61e9-11eb-204f-4d0e844680cd
+kepler_sys = ODESystem(lagkepler, t)
 
+# ╔═╡ 76155afa-6211-11eb-2d38-0f88ece4aabf
+kepler_ode_func = ODEFunction(kepler_sys)
+
+# ╔═╡ de9457d4-6211-11eb-020c-5d19dcaf8106
+begin
+	u0_kep = [-1.0, 0.0, 0.0, 1.0]
+	du_kep = similar(u0_kep)
+	tspan_kep = (0.0, 5.0)
+	p_kep = [10.0, 3.0]
+end
+
+# ╔═╡ 229ec7d8-6213-11eb-261d-4739e7562178
+kepler_ode_func(du_kep, u0_kep, p_kep, 0.0)
+
+# ╔═╡ 3cba55e2-6213-11eb-2570-cf445b02d7c5
+du_kep
 
 # ╔═╡ 22c98e36-61e7-11eb-0389-2fcfe5f3bd11
-kepler_prob = ODEProblem(ODESystem(lagkepler, t), [x=>1.0, x_t=>-1.0, y=>-1.0, y_t=>1.0], (0.0, 0.2), [k=>p0[1], m=>p0[2]])
+kepler_prob = ODEProblem(kepler_ode_func, u0_kep, tspan_kep, p_kep)
 
 # ╔═╡ 3c58cd92-61e9-11eb-34ec-c1b507fdffc2
-kepler_sol = solve(kepler_prob, Tsit5())
+kepler_sol = solve(kepler_prob, Vern8())
 
 # ╔═╡ 434fd42e-61e9-11eb-3178-e76dc841018f
-plot(kepler_sol; dpi=350)
+kepplot = plot(kepler_sol; dpi=350)
+
+# ╔═╡ e291cf0c-6210-11eb-2fca-6b83b66c9de3
+kepphaseplot = plot(kepler_sol; vars=(2, 4), dpi=350)
+
+# ╔═╡ 11dffbf8-6211-11eb-382b-dba7dfe9ed2a
+kepphasetimeplot = plot(kepler_sol; vars=(0, 2, 4), dpi=350)
+
+# ╔═╡ b1430fd4-620f-11eb-1910-15102c12f52f
+save("kepplot.png", kepplot)
+
+# ╔═╡ 18127514-6211-11eb-07f8-33293bb5683b
+save("kepphaseplot.png", kepphaseplot)
+
+# ╔═╡ 24b3de8e-6211-11eb-2901-e30917142b8d
+save("kepphasetimeplot.png", kepphasetimeplot)
+
+# ╔═╡ 3823af7e-61fa-11eb-2095-1f864cf71459
+#### 1.6.1 Coordinate Transformations
+
+# ╔═╡ 4402830e-61fa-11eb-2c55-354380e16398
+function F_to_C(F)
+	function F_to_C_inner(locals)
+		(t, F(locals), MTderivative(F, locals[2])(locals) .+ MTderivative(F, locals[3])(locals) .* locals[3])
+	end
+end
+
+# ╔═╡ 0455cb86-61fb-11eb-2ccf-7786a457e9e0
+function polar_to_rectangular(locals)
+	r, ϕ = locals[2]
+	x = r * cos(ϕ)
+	y = r * sin(ϕ)
+	
+	(x, y)
+end
+
+# ╔═╡ ed46d722-61fb-11eb-1995-833ff65293be
+@variables r(t) ϕ(t)
+
+# ╔═╡ 0aeed2de-61fc-11eb-2955-b5a0b54abe00
+@variables r_t(t) ϕ_t(t)
+
+# ╔═╡ f41cb288-61fb-11eb-07a4-31db6009cfc7
+locals = (t, (r, ϕ), (r_t, ϕ_t))
+
+# ╔═╡ 1841a236-61fc-11eb-1753-d392c6a20d57
+polar_to_rectangular(locals)
+
+# ╔═╡ 539f0c16-61fe-11eb-2141-fbae47ab042e
+prl1 = polar_to_rectangular(locals)[1]
+
+# ╔═╡ c171da40-61fe-11eb-161f-e3d6cbea4ab2
+prl2 = polar_to_rectangular(locals)[2]
+
+# ╔═╡ 5bcb895c-61fe-11eb-31bf-e51353efd58d
+simplify(MTderivative(prl1, t) + MTderivative(prl1, r) * D(r) + MTderivative(prl1, ϕ) * D(ϕ))
+
+# ╔═╡ c036a7a0-61fe-11eb-0c48-97d99436034b
+simplify(MTderivative(prl2, t) + MTderivative(prl2, r) * D(r) + MTderivative(prl2, ϕ) * D(ϕ))
+
+# ╔═╡ 52aa43a6-61fc-11eb-1501-4ff921328b78
+expanded_x = simplify(MTderivative(polar_to_rectangular(locals)[2], locals[1]) + MTderivative(polar_to_rectangular(locals)[2], locals[2][1]) * locals[3][1])
+
+# ╔═╡ 067c243a-61fd-11eb-131f-c96e8cb2aae5
+derivativerrule = @acrule (D(~r)) => ~r_t
+
+# ╔═╡ 8701b8ea-61fd-11eb-3b03-35ba2013864d
+derivativerrule(expanded_x)
+
+# ╔═╡ 77f6c2ec-61fc-11eb-1c5b-436ba55225be
+polar_to_rectangular(locals)[1]
+
+# ╔═╡ 28bdcd58-61fc-11eb-22fc-99210bba2842
+F_to_C(polar_to_rectangular)(locals)
 
 # ╔═╡ Cell order:
 # ╠═a9afdc92-61b9-11eb-1ac4-d1b9cba169ff
 # ╠═f65c0428-61b9-11eb-0262-6dee6a26c858
 # ╠═98cb1be8-61bc-11eb-3652-35d883d64e97
 # ╠═0d5893bc-61ba-11eb-21d6-2167c33bdeec
+# ╠═4913b034-633c-11eb-2109-5f2a85b3632f
 # ╠═f00943f2-61db-11eb-025f-27e4a44b10f8
 # ╠═50a2ab6a-61bc-11eb-3933-890b4a8dfb64
+# ╠═ef680ac4-6338-11eb-0ae4-83ed341a561e
+# ╠═9c77aa44-6339-11eb-17b2-4fc2734cdcc6
+# ╠═3b72e1d2-6339-11eb-3242-65b0429b5198
+# ╠═456b0be4-6339-11eb-39d8-17e640984fd1
+# ╠═54322932-633c-11eb-0b94-b3a11c262da9
+# ╠═39738640-633c-11eb-17d0-c9dac4a1f5bb
+# ╠═f104c252-633b-11eb-233e-6d728a946be0
+# ╠═f690e782-633b-11eb-1f36-71ab4e952e40
+# ╠═5c5d289e-6339-11eb-318f-15341be56c4b
+# ╠═87cdd570-6339-11eb-2f0d-e5e1ac662fab
+# ╠═949a44a8-6339-11eb-3e2c-ddfbed92f6af
+# ╠═b004abe8-6339-11eb-3f8b-aba28292a88e
+# ╠═b4d037e6-6339-11eb-12b4-25efa11e3aba
+# ╠═4de82ab6-6339-11eb-16d4-b51a0aec0802
 # ╠═79a3f678-61cf-11eb-1d7a-31224592dc85
 # ╠═1a88e708-61ba-11eb-394a-fff715bf6808
 # ╠═0ffa5e60-61bb-11eb-05e1-0d2a6f66ed62
@@ -446,6 +599,7 @@ plot(kepler_sol; dpi=350)
 # ╠═2bc7d170-61e5-11eb-22e7-198087098446
 # ╠═c54e959a-61e0-11eb-12ac-e35a69d26a18
 # ╠═15ca6e50-61d1-11eb-1f59-1b814635c335
+# ╠═a4ae8bd0-62ab-11eb-1f76-2596a3d649bb
 # ╠═61d6f634-61da-11eb-3621-4bae15be5cfe
 # ╠═45a8e8d6-61d1-11eb-2e54-97bd0832cf66
 # ╠═c6c42192-61d1-11eb-0df7-a1300ccb1fa0
@@ -485,6 +639,31 @@ plot(kepler_sol; dpi=350)
 # ╠═f7a3b9c2-61e6-11eb-2bba-f7d1d6fe1658
 # ╠═045eda50-61e7-11eb-136b-47bb20bf6c6e
 # ╠═2b3bcca8-61e9-11eb-204f-4d0e844680cd
+# ╠═76155afa-6211-11eb-2d38-0f88ece4aabf
+# ╠═229ec7d8-6213-11eb-261d-4739e7562178
+# ╠═3cba55e2-6213-11eb-2570-cf445b02d7c5
+# ╠═de9457d4-6211-11eb-020c-5d19dcaf8106
 # ╠═22c98e36-61e7-11eb-0389-2fcfe5f3bd11
 # ╠═3c58cd92-61e9-11eb-34ec-c1b507fdffc2
 # ╠═434fd42e-61e9-11eb-3178-e76dc841018f
+# ╠═e291cf0c-6210-11eb-2fca-6b83b66c9de3
+# ╠═11dffbf8-6211-11eb-382b-dba7dfe9ed2a
+# ╠═b1430fd4-620f-11eb-1910-15102c12f52f
+# ╠═18127514-6211-11eb-07f8-33293bb5683b
+# ╠═24b3de8e-6211-11eb-2901-e30917142b8d
+# ╠═3823af7e-61fa-11eb-2095-1f864cf71459
+# ╠═4402830e-61fa-11eb-2c55-354380e16398
+# ╠═0455cb86-61fb-11eb-2ccf-7786a457e9e0
+# ╠═ed46d722-61fb-11eb-1995-833ff65293be
+# ╠═0aeed2de-61fc-11eb-2955-b5a0b54abe00
+# ╠═f41cb288-61fb-11eb-07a4-31db6009cfc7
+# ╠═1841a236-61fc-11eb-1753-d392c6a20d57
+# ╠═539f0c16-61fe-11eb-2141-fbae47ab042e
+# ╠═c171da40-61fe-11eb-161f-e3d6cbea4ab2
+# ╠═5bcb895c-61fe-11eb-31bf-e51353efd58d
+# ╠═c036a7a0-61fe-11eb-0c48-97d99436034b
+# ╠═52aa43a6-61fc-11eb-1501-4ff921328b78
+# ╠═067c243a-61fd-11eb-131f-c96e8cb2aae5
+# ╠═8701b8ea-61fd-11eb-3b03-35ba2013864d
+# ╠═77f6c2ec-61fc-11eb-1c5b-436ba55225be
+# ╠═28bdcd58-61fc-11eb-22fc-99210bba2842
